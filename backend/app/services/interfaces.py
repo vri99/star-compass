@@ -1,28 +1,34 @@
-from typing import Protocol
 from datetime import datetime
+from typing import Protocol
 
-from astropy.time import Time # type: ignore[import-untyped]
-from astropy.coordinates import EarthLocation, ICRS  # type: ignore[import-untyped]
+import numpy as np
+import numpy.typing as npt
+from astropy.coordinates import ICRS, EarthLocation  # type: ignore[import-untyped]
+from astropy.time import Time  # type: ignore[import-untyped]
 from astropy.units import Quantity
-
 from backend.app.models.star_model import StarModel
 from backend.app.schemas.star_constellation_schema import StarSchema
+
 
 class SkyCalculatorInterface(Protocol):
     date: datetime
     longitude: float
     latitude: float
 
-    def __convert_user_loc_to_astropy_loc(self, longitude: float, latitude: float, date: datetime ) -> EarthLocation: ...
+    def _convert_user_loc_to_astropy_loc(self) -> EarthLocation: ...
 
-    def __convert_date_to_astropy_time(self, date: datetime) -> Time: ...
+    def _convert_date_to_astropy_time(self) -> Time: ...
 
-    def __convert_to_deg(self, quantity_array: list[float]) -> list[Quantity]: ...
+    def _convert_to_deg(self, num_array: npt.NDArray[np.float64]) -> list[Quantity]: ...
 
-    def convert_meshgrid_into_ICRS(self, altitude: tuple[float, float], azimuth: tuple[float, float]) -> ICRS: ...
+    def _convert_meshgrid_into_ICRS(  # noqa: N802
+        self, alt_grid: npt.NDArray[np.float64], az_grid: npt.NDArray[np.float64]
+    ) -> ICRS: ...
 
-    def __generate_sky_2d_meshgrid(self) -> list[tuple[float]]: ...
+    def _generate_sky_2d_meshgrid(
+        self,
+    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]: ...
+
 
 class SkyTransformerInterface(Protocol):
-
-    def transform(self, model: StarModel) -> StarSchema: ...
+    def _transform_model(self, model: StarModel) -> StarSchema: ...
