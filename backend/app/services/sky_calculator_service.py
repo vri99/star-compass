@@ -1,10 +1,10 @@
 from datetime import datetime
 
+import astropy.coordinates
 import numpy as np
 import numpy.typing as npt
 from astropy import units as u
 from astropy.coordinates import (  # type: ignore[import-untyped]
-    ICRS,
     AltAz,
     EarthLocation,
     SkyCoord,
@@ -33,10 +33,12 @@ class SkyCalculatorService(SkyCalculatorInterface):
         """E.g. [[10.0, 45.0], [90.0, 180.0]] >> [10., 45., 90., 180.] deg"""
         return np.ravel(num_array) * u.deg
 
-    def _convert_meshgrid_into_ICRS(
-        self, alt_grid: npt.NDArray[np.float64], az_grid: npt.NDArray[np.float64]
-    ) -> ICRS:
+    def _build_ICRS_frame(self) -> SkyCoord:
         """Convert alt/az meshgrid into 'International Celestial Reference System' equatorial coordinates for a given location and time."""  # noqa: E501
+
+        # get predefined visible sky grids
+        alt_grid, az_grid = self._sky_2d_meshgrid
+
         # flatten grids and attach degree units
         alt_grid_into_deg: list[Quantity] = self._convert_to_deg(alt_grid)
         az_grid_into_deg: list[Quantity] = self._convert_to_deg(az_grid)
@@ -58,7 +60,8 @@ class SkyCalculatorService(SkyCalculatorInterface):
         # convert Horizontal coordinates into Equatorial coordinates (Right Ascension/Declination)
         return alt_az_cords.transform_to("icrs")
 
-    def _generate_sky_2d_meshgrid(
+    @property
+    def _sky_2d_meshgrid(
         self,
     ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         """Generate a 2D meshgrid of altitude and azimuth values covering the visible sky."""
@@ -73,3 +76,8 @@ class SkyCalculatorService(SkyCalculatorInterface):
         alt_grid, az_grid = np.meshgrid(altitudes, azimuths)
 
         return alt_grid, az_grid
+
+    def get_visible_constellations(self) -> set[str]:
+        icrs_frame: SkyCoord = self._build_ICRS_frame()
+
+        return {str(x).strip() for x in astropy.coordinates.get_constellation(icrs_frame)}

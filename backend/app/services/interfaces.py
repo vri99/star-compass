@@ -3,7 +3,7 @@ from typing import Protocol
 
 import numpy as np
 import numpy.typing as npt
-from astropy.coordinates import ICRS, EarthLocation  # type: ignore[import-untyped]
+from astropy.coordinates import EarthLocation, SkyCoord  # type: ignore[import-untyped]
 from astropy.time import Time  # type: ignore[import-untyped]
 from astropy.units import Quantity
 from backend.app.models.star_model import StarModel
@@ -21,11 +21,12 @@ class SkyCalculatorInterface(Protocol):
 
     def _convert_to_deg(self, num_array: npt.NDArray[np.float64]) -> list[Quantity]: ...
 
-    def _convert_meshgrid_into_ICRS(  # noqa: N802
+    def _build_ICRS_frame(  # noqa: N802
         self, alt_grid: npt.NDArray[np.float64], az_grid: npt.NDArray[np.float64]
-    ) -> ICRS: ...
+    ) -> SkyCoord: ...
 
-    def _generate_sky_2d_meshgrid(
+    @property
+    def _sky_2d_meshgrid(
         self,
     ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]: ...
 
