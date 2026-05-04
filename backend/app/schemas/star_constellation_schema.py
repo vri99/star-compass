@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class StarSchema(BaseModel):
     # 3D cords
     x: float
@@ -11,8 +12,8 @@ class StarSchema(BaseModel):
     name: str
     constellation_name: str
 
+
 class ConstellationSchema(BaseModel):
     name: str
     stars: list[StarSchema]
     lines: list[tuple[str, str]]
-

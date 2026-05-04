@@ -11,7 +11,7 @@ from astropy.coordinates import (  # type: ignore[import-untyped]
 )
 from astropy.time import Time  # type: ignore[import-untyped]
 from astropy.units import Quantity
-from backend.app.services.interfaces import SkyCalculatorInterface
+from backend.app.services.service_interfaces import SkyCalculatorInterface
 
 
 class SkyCalculatorService(SkyCalculatorInterface):
@@ -34,7 +34,8 @@ class SkyCalculatorService(SkyCalculatorInterface):
         return np.ravel(num_array) * u.deg
 
     def _build_ICRS_frame(self) -> SkyCoord:
-        """Convert alt/az meshgrid into 'International Celestial Reference System' equatorial coordinates for a given location and time."""  # noqa: E501
+        """Convert alt/az meshgrid into 'International Celestial Reference System' equatorial coordinates for
+        a given location and time."""
 
         # get predefined visible sky grids
         alt_grid, az_grid = self._sky_2d_meshgrid
@@ -78,6 +79,13 @@ class SkyCalculatorService(SkyCalculatorInterface):
         return alt_grid, az_grid
 
     def get_visible_constellations(self) -> set[str]:
+        """Get all visible constellations for the user location."""
         icrs_frame: SkyCoord = self._build_ICRS_frame()
 
-        return {str(x).strip() for x in astropy.coordinates.get_constellation(icrs_frame)}
+        # get list of visible constellations for given frame of coordinates
+        visible_constellations: npt.NDArray[np.str_] = (
+            astropy.coordinates.get_constellation(icrs_frame, short_name=True)
+        )
+
+        # convert numpy str_ type into set unique constellation names
+        return {str(x).strip() for x in visible_constellations}
