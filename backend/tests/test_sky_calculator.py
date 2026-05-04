@@ -41,7 +41,7 @@ class TestSkyCalculator:
         assert az_grid.min() == 0.0
         assert az_grid.max() == 360.0
 
-    def test_build_ICRS_frame(self, sky_calculator: SkyCalculatorService) -> None:
+    def test_build_ICRS_frame(self, sky_calculator: SkyCalculatorService) -> None:  # noqa: N802
 
         icrs_frame: SkyCoord = sky_calculator._build_ICRS_frame()
 
