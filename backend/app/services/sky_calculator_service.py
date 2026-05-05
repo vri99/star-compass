@@ -83,9 +83,9 @@ class SkyCalculatorService(SkyCalculatorInterface):
         icrs_frame: SkyCoord = self._build_ICRS_frame()
 
         # get list of visible constellations for given frame of coordinates
-        visible_constellations: npt.NDArray[np.str_] = (
-            astropy.coordinates.get_constellation(icrs_frame, short_name=True)
+        visible_constellations: npt.NDArray[np.str_] = astropy.coordinates.get_constellation(
+            icrs_frame, short_name=True
         )
 
         # convert numpy str_ type into set unique constellation names
-        return {str(x).strip() for x in visible_constellations}
+        return {str(x).strip().upper() for x in visible_constellations}

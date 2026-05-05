@@ -5,8 +5,15 @@ from astropy.coordinates import EarthLocation, SkyCoord  # type: ignore[import-u
 from astropy.time import Time  # type: ignore[import-untyped]
 from backend.app.services.sky_calculator_service import SkyCalculatorService
 
-KYIV_LON = 0.0
-KYIV_LAT = 90.0
+KYIV_LON = 30.5
+KYIV_LAT = 50.4
+
+NORTH_POLE_LON = 0.0
+NORTH_POLE_LAT = 90.0
+
+SOUTH_POLE_LON = 0.0
+SOUTH_POLE_LAT = -90.0
+
 TEST_DATE = datetime(2026, 7, 29, 21, 0, 0)
 
 
@@ -51,9 +58,9 @@ class TestSkyCalculator:
     @pytest.mark.parametrize(
         "lat,lon,expected",
         [
-            (90.0, 0.0, {"Ursa Minor"}),
-            (-90.0, 0.0, {"Crux"}),
-            (50.4, 30.5, {"Boötes"}),  # kyiv
+            (NORTH_POLE_LAT, NORTH_POLE_LON, {"UMI"}),
+            (-SOUTH_POLE_LAT, SOUTH_POLE_LON, {"CRU"}),
+            (KYIV_LAT, KYIV_LON, {"BOO"}),
         ],
     )
     def test_get_visible_constellations(self, lon, lat, expected) -> None:
