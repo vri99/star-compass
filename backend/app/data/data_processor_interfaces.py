@@ -26,9 +26,11 @@ type ConstellationData = tuple[ConstellationLines, ConstellationNames, FlatStarI
 
 
 class DataProcessorInterface(Protocol):
+    __HYG_file_path: str
     __constellation_names_file: str
     __constellation_lines_file: str
-    __constellation_data_file: str
+    _constellation_data_file: str
+    __MAX_MAGNITUDE: float
 
     def _process_dat_constellation_list(self) -> ConstellationNames: ...
 

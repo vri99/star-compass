@@ -17,15 +17,18 @@ BASE_DIR = Path(__file__).parent
 
 
 class DataProcessor(DataProcessorInterface):
+    __HYG_file_path: str = BASE_DIR / "files" / "hyg_v42.csv"
     __constellation_names_file_path: str = BASE_DIR / "files" / "constellation_names.dat"
     __constellation_lines_file_path: str = BASE_DIR / "files" / "constellation_lines_simplified.dat"
-    __constellation_data_file_path: str = BASE_DIR / "files" / "constellation_data.py"
-    __HYG_file_path: str = BASE_DIR / "files" / "hyg_v42.csv"
+    _constellation_data_file_path: str = BASE_DIR / "files" / "constellation_data.py"
+
+    __MAX_MAGNITUDE: float = 5.0
 
     def __init__(self) -> None:
         pass
 
     def _process_dat_constellation_list(self) -> ConstellationNames:
+        """Parse constellation names file and return a mapping of 3 char id to full name."""
         df: DataFrame = pd.read_csv(
             self.__constellation_names_file_path,
             sep="\\s+",
@@ -33,7 +36,9 @@ class DataProcessor(DataProcessorInterface):
             index_col=0,
             comment="#",
             header=None,
-        )
+        )  # type: ignore[call-overload]
+
+        # trim uid to 3 chars e.g. "And" from "Andromeda"
         df.index = df.index.str[:3]
 
         constellation_names: ConstellationNames = df[1].to_dict()
@@ -41,6 +46,8 @@ class DataProcessor(DataProcessorInterface):
         return constellation_names
 
     def _process_dat_constellation_lines(self) -> ConstellationLines:
+        """Parse constellation lines file and return a mapping of full name
+        to list of star id groups to be connected."""
         data: ConstellationLines = defaultdict(list)
         current_key: str = ""
 
@@ -48,18 +55,19 @@ class DataProcessor(DataProcessorInterface):
             for line in f:
                 line = line.strip()
                 if line.startswith("*"):
-                    # remove excessive symbols from constellation name
+                    # extract constellation full name from header line
                     current_key = line.replace("*", "").strip()
                 elif line.startswith("["):
                     # transform str into a list
                     hip_list: list[str] = json.loads(line)
 
-                    # remove all * from star_ids and add it to the list
+                    # strip asterisks from star ids and convert to int
                     data[current_key].append([int(x.strip("*")) for x in hip_list])
 
         return data
 
     def _transform_star_ids_into_set(self, constellation_stars_dict: ConstellationLines) -> FlatStarIds:  # noqa: N802
+        """Flatten nested star id groups into a single set of unique star ids."""
 
         flat_star_ids: FlatStarIds = set()
 
@@ -72,8 +80,11 @@ class DataProcessor(DataProcessorInterface):
     def _get_processed_constellation_data(
         self,
     ) -> ConstellationData:
+        """Orchestrate all processing steps and return a complete constellation dataset."""
         constellation_lines: ConstellationLines = self._process_dat_constellation_lines()
         constellation_names: ConstellationNames = self._process_dat_constellation_list()
+
+        # for efficient CSV filtering
         flat_star_ids: FlatStarIds = self._transform_star_ids_into_set(constellation_lines)
 
         constellation_dict: ConstellationDict = self._process_csv_constellations(
@@ -93,18 +104,19 @@ class DataProcessor(DataProcessorInterface):
         constellation_names: ConstellationNames,
         flat_star_ids: FlatStarIds,
     ) -> ConstellationDict:
+        """Filter HYG star catalog by constellation HIP (star) ids and a star magnitude (brightness),
+        then group by constellation."""
+
         df = pd.read_csv(self.__HYG_file_path, usecols=["hip", "proper", "con", "ra", "dec", "mag"]).dropna(
             subset=["con", "hip"]
         )
 
-        df_cleaned = df[df["hip"].isin(flat_star_ids) & (df["mag"] < 5)]
-
-        # TODO: Define typing
-
+        # keep only stars that belong to constellation lines and are bright enough
+        df_cleaned = df.loc[df["hip"].isin(flat_star_ids) & (df["mag"] < self.__MAX_MAGNITUDE)]
+        # "hip" column is floating by default. Convert into int
         df_cleaned["hip"] = df_cleaned["hip"].astype(int)
 
-        grouped = df_cleaned.groupby("con")
-
+        # map data for each constellation
         constellation_dict: ConstellationDict = {
             con: {
                 "stars": group.drop(columns="con").fillna("").to_dict("records"),
@@ -112,17 +124,22 @@ class DataProcessor(DataProcessorInterface):
                 "full_name": constellation_names[con.upper()],
                 "lines": constellation_lines[constellation_names[con.upper()]],
             }
-            for con, group in grouped
+            # group stars by constellation it belongs to
+            for con, group in df_cleaned.groupby("con")
         }
 
         return constellation_dict
 
     def generate_data_file(self) -> None:
-        data_file_path: Path = Path(self.__constellation_data_file_path)
+        """Generate a Python dictionary data file from processed constellation data."""
+
+        data_file_path: Path = Path(self._constellation_data_file_path)
 
         if not data_file_path.exists():
+            # unpack only the final dict, discard intermediate data
             *_, constellation_dict = self._get_processed_constellation_data()
 
+            # check if parent directory exists
             data_file_path.parent.mkdir(parents=True, exist_ok=True)
 
             with open(data_file_path, "w", encoding="utf-8") as f:
@@ -131,11 +148,3 @@ class DataProcessor(DataProcessorInterface):
 
                 f.write(json.dumps(constellation_dict, indent=4, ensure_ascii=False))
                 f.write("\n")
-        else:
-            pass
-
-
-if __name__ == "__main__":
-    dp = DataProcessor()
-
-    dp.generate_data_file()
