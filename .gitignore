@@ -6,6 +6,7 @@ __pycache__
 .pytest_cache
 *.egg-info
 test.py
+backend/app/data/files/constellation_data.py
 
 # Node / Frontend
 node_modules/
