@@ -16,6 +16,7 @@ def constellation_data(data_processor: DataProcessor) -> ConstellationData:
     return data_processor._get_processed_constellation_data()
 
 
+@pytest.mark.dependency()
 class TestDataProcessor:
     def test_all_87_constellation_present(
         self,
