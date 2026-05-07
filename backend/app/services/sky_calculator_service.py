@@ -1,13 +1,14 @@
 from datetime import datetime
 
-import astropy.coordinates
 import numpy as np
 import numpy.typing as npt
 from astropy import units as u
 from astropy.coordinates import (  # type: ignore[import-untyped]
     AltAz,
     EarthLocation,
+    Longitude,
     SkyCoord,
+    get_constellation,
 )
 from astropy.time import Time  # type: ignore[import-untyped]
 from astropy.units import Quantity
@@ -20,11 +21,13 @@ class SkyCalculatorService(SkyCalculatorInterface):
         self.longitude = longitude
         self.latitude = latitude
 
-    def _convert_user_loc_to_astropy_loc(self) -> EarthLocation:
+    @property
+    def _user_location_on_earth(self) -> EarthLocation:
         """Convert a user's location into Astropy's EarthLocation Class."""
         return EarthLocation(lon=self.longitude, lat=self.latitude, height=0)
 
-    def _convert_date_to_astropy_time(self) -> Time:
+    @property
+    def _user_date_to_earth_time(self) -> Time:
         """Convert a user's datetime into Astropy's Time Class in ISO format."""
         return Time(self.date, format="datetime", scale="utc")
 
@@ -33,7 +36,7 @@ class SkyCalculatorService(SkyCalculatorInterface):
         """E.g. [[10.0, 45.0], [90.0, 180.0]] >> [10., 45., 90., 180.] deg"""
         return np.ravel(num_array) * u.deg
 
-    def _build_ICRS_frame(self) -> SkyCoord:
+    def _build_ICRS_frame(self) -> SkyCoord:  # noqa: N802
         """Convert alt/az meshgrid into 'International Celestial Reference System' equatorial coordinates for
         a given location and time."""
 
@@ -45,8 +48,8 @@ class SkyCalculatorService(SkyCalculatorInterface):
         az_grid_into_deg: list[Quantity] = self._convert_to_deg(az_grid)
 
         # convert user input into astropy-compatible types
-        user_location: EarthLocation = self._convert_user_loc_to_astropy_loc()
-        user_time: Time = self._convert_date_to_astropy_time()
+        user_location: EarthLocation = self._user_location_on_earth
+        user_time: Time = self._user_date_to_earth_time
 
         # build a coordinate object in the Altitude-Azimuth frame (Horizontal coordinates)
         alt_az_cords = SkyCoord(
@@ -83,9 +86,39 @@ class SkyCalculatorService(SkyCalculatorInterface):
         icrs_frame: SkyCoord = self._build_ICRS_frame()
 
         # get list of visible constellations for given frame of coordinates
-        visible_constellations: npt.NDArray[np.str_] = astropy.coordinates.get_constellation(
-            icrs_frame, short_name=True
-        )
+        visible_constellations: npt.NDArray[np.str_] = get_constellation(icrs_frame, short_name=True)
 
         # convert numpy str_ type into set unique constellation names
         return {str(x).strip().upper() for x in visible_constellations}
+
+    def convert_icrs_into_az_alt(
+        self,
+        star_ra_list: npt.NDArray[np.float64],
+        star_dec_list: npt.NDArray[np.float64],
+    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+        """Convert star coordinates from ICRS (ra/dec) to horizontal system (alt/az) for the observer."""
+        # build sky coordinates from equatorial ra/dec arrays
+        cords: SkyCoord = SkyCoord(ra=star_ra_list * u.deg, dec=star_dec_list * u.deg, frame="icrs")
+
+        # define observer-relative frame using location and time
+        alt_az_frame: AltAz = AltAz(
+            obstime=self._user_date_to_earth_time,
+            location=self._user_location_on_earth,
+        )
+
+        # transform equatorial coordinates to horizontal
+        transformed_star_cords: AltAz = cords.transform_to(alt_az_frame)
+
+        return transformed_star_cords.alt.deg, transformed_star_cords.az.deg
+
+    @property
+    def astronomy_time_for_location(self) -> float:
+        """Return Local Sidereal Time (LST) in degrees for the observer's location and time."""
+
+        time: Time = self._user_date_to_earth_time
+        earth_location: EarthLocation = self._user_location_on_earth
+
+        # Local Sidereal Time defines which part of the sky is currently overhead
+        astronomy_time: Longitude = time.sidereal_time("mean", earth_location)
+
+        return astronomy_time.deg
