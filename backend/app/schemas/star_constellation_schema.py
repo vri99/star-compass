@@ -2,10 +2,10 @@ from pydantic import BaseModel
 
 
 class StarSchema(BaseModel):
-    # 3D cords
-    x: float
-    y: float
-    z: float
+    # ICRS coordinates
+    ra: float
+    dec: float
+
     # brightness
     mag: float
     # attributes
@@ -16,4 +16,4 @@ class StarSchema(BaseModel):
 class ConstellationSchema(BaseModel):
     name: str
     stars: list[StarSchema]
-    lines: list[tuple[str, str]]
+    lines: list[list[str]]
