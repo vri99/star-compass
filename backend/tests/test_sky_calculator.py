@@ -1,35 +1,42 @@
 from datetime import datetime
 
+import numpy as np
+import numpy.typing as npt
 import pytest
 from astropy.coordinates import EarthLocation, SkyCoord  # type: ignore[import-untyped]
 from astropy.time import Time  # type: ignore[import-untyped]
 from backend.app.services.sky_calculator_service import SkyCalculatorService
+from backend.tests.test_fixtures import (
+    KYIV_LAT,
+    KYIV_LON,
+    LST_EXPECTED,
+    MOCK_STARS_SPRING_KYIV,
+    MOCK_STARS_SPRING_NORTH_POLE,
+    MOCK_STARS_WINTER_KYIV,
+    NORTH_POLE_LAT,
+    NORTH_POLE_LON,
+    SOUTH_POLE_LAT,
+    SOUTH_POLE_LON,
+    SPRING_EVENING,
+    WINTER_EVENING,
+)
 
-KYIV_LON = 30.5
-KYIV_LAT = 50.4
-
-NORTH_POLE_LON = 0.0
-NORTH_POLE_LAT = 90.0
-
-SOUTH_POLE_LON = 0.0
-SOUTH_POLE_LAT = -90.0
-
-TEST_DATE = datetime(2026, 7, 29, 21, 0, 0)
+type NpFloat = npt.NDArray[np.float64]
 
 
 @pytest.fixture
 def sky_calculator() -> SkyCalculatorService:
-    return SkyCalculatorService(TEST_DATE, KYIV_LON, KYIV_LAT)
+    return SkyCalculatorService(SPRING_EVENING, KYIV_LON, KYIV_LAT)
 
 
 class TestSkyCalculator:
-    def test_convert_user_loc_to_astropy_loc(self, sky_calculator: SkyCalculatorService) -> None:
-        loc: EarthLocation = sky_calculator._convert_user_loc_to_astropy_loc()
+    def test_user_location_on_earth(self, sky_calculator: SkyCalculatorService) -> None:
+        loc: EarthLocation = sky_calculator._user_location_on_earth
 
         assert isinstance(loc, EarthLocation)
 
-    def test_convert_date_to_astropy_time(self, sky_calculator: SkyCalculatorService):
-        time: Time = sky_calculator._convert_date_to_astropy_time()
+    def test__user_date_to_earth_time(self, sky_calculator: SkyCalculatorService):
+        time: Time = sky_calculator._user_date_to_earth_time
 
         assert isinstance(time, Time)
 
@@ -59,13 +66,43 @@ class TestSkyCalculator:
         "lat,lon,expected",
         [
             (NORTH_POLE_LAT, NORTH_POLE_LON, {"UMI"}),
-            (-SOUTH_POLE_LAT, SOUTH_POLE_LON, {"CRU"}),
+            (SOUTH_POLE_LAT, SOUTH_POLE_LON, {"CRU"}),
             (KYIV_LAT, KYIV_LON, {"BOO"}),
         ],
     )
-    def test_get_visible_constellations(self, lon, lat, expected) -> None:
-        sky_calculator: SkyCalculatorService = SkyCalculatorService(TEST_DATE, lon, lat)
+    def test_get_visible_constellations(self, lon: float, lat: float, expected: set[str]) -> None:
+        sky_calculator: SkyCalculatorService = SkyCalculatorService(SPRING_EVENING, lon, lat)
 
         constellations: set[str] = sky_calculator.get_visible_constellations()
 
         assert expected.issubset(constellations)
+
+    @pytest.mark.parametrize(
+        "lat,lon,date,stars",
+        [
+            (KYIV_LAT, KYIV_LON, SPRING_EVENING, MOCK_STARS_SPRING_KYIV),
+            (NORTH_POLE_LAT, NORTH_POLE_LON, SPRING_EVENING, MOCK_STARS_SPRING_NORTH_POLE),
+            (KYIV_LAT, KYIV_LON, WINTER_EVENING, MOCK_STARS_WINTER_KYIV),
+        ],
+        ids=["spring_kyiv", "spring_north_pole", "winter_kyiv"],
+    )
+    def test_convert_icrs_into_az_alt(self, lat, lon, date, stars):
+        calculator: SkyCalculatorService = SkyCalculatorService(date, lon, lat)
+        ra: NpFloat = np.array([s[0] for s in stars])
+        dec: NpFloat = np.array([s[1] for s in stars])
+        expected_alt: NpFloat = np.array([s[2] for s in stars])
+        expected_az: NpFloat = np.array([s[3] for s in stars])
+
+        alt, az = calculator.convert_icrs_into_az_alt(ra, dec)
+
+        assert alt == pytest.approx(expected_alt, abs=0.001)
+        assert az == pytest.approx(expected_az, abs=0.001)
+
+    @pytest.mark.parametrize("lat,lon,date,expected_lst_range", LST_EXPECTED)
+    def test_astronomy_time_for_location(
+        self, lat: float, lon: float, date: datetime, expected_lst_range: set[str]
+    ) -> None:
+        calculator: SkyCalculatorService = SkyCalculatorService(date, lon, lat)
+        result: float = calculator.astronomy_time_for_location
+
+        assert round(result, 4) == pytest.approx(expected_lst_range, abs=0.001)
