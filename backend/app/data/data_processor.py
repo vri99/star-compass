@@ -36,7 +36,8 @@ class DataProcessor(DataProcessorInterface):
             index_col=0,
             comment="#",
             header=None,
-        )  # type: ignore[call-overload]
+        )
+        # type: ignore[call-overload]
 
         # trim uid to 3 chars e.g. "And" from "Andromeda"
         df.index = df.index.str[:3]
@@ -77,33 +78,10 @@ class DataProcessor(DataProcessorInterface):
 
         return flat_star_ids
 
-    def _get_processed_constellation_data(
+    def _filter_csv_constellations(
         self,
-    ) -> ConstellationData:
-        """Orchestrate all processing steps and return a complete constellation dataset."""
-        constellation_lines: ConstellationLines = self._process_dat_constellation_lines()
-        constellation_names: ConstellationNames = self._process_dat_constellation_list()
-
-        # for efficient CSV filtering
-        flat_star_ids: FlatStarIds = self._transform_star_ids_into_set(constellation_lines)
-
-        constellation_dict: ConstellationDict = self._process_csv_constellations(
-            constellation_lines, constellation_names, flat_star_ids
-        )
-
-        return (
-            constellation_lines,
-            constellation_names,
-            flat_star_ids,
-            constellation_dict,
-        )
-
-    def _process_csv_constellations(
-        self,
-        constellation_lines: ConstellationLines,
-        constellation_names: ConstellationNames,
         flat_star_ids: FlatStarIds,
-    ) -> ConstellationDict:
+    ) -> DataFrame:
         """Filter HYG star catalog by constellation HIP (star) ids and a star magnitude (brightness),
         then group by constellation."""
 
@@ -116,19 +94,57 @@ class DataProcessor(DataProcessorInterface):
         # "hip" column is floating by default. Convert into int
         df_cleaned["hip"] = df_cleaned["hip"].astype(int)
 
+        return df_cleaned
+
+    def _get_processed_constellation_data(
+        self,
+    ) -> ConstellationData:
+        """Orchestrate all processing steps and return a complete constellation dataset."""
+        constellation_lines: ConstellationLines = self._process_dat_constellation_lines()
+        constellation_names: ConstellationNames = self._process_dat_constellation_list()
+
+        # for efficient CSV filtering
+        flat_star_ids: FlatStarIds = self._transform_star_ids_into_set(constellation_lines)
+
+        filtered_data: DataFrame = self._filter_csv_constellations(flat_star_ids)
+
+        constellation_dict: ConstellationDict = self._combine_data_into_constellation_dict(
+            filtered_data, constellation_lines, constellation_names
+        )
+
+        return (
+            constellation_lines,
+            constellation_names,
+            flat_star_ids,
+            constellation_dict,
+        )
+
+    def _combine_data_into_constellation_dict(
+        self,
+        df: DataFrame,
+        constellation_lines: ConstellationLines,
+        constellation_names: ConstellationNames,
+    ) -> ConstellationDict:
         # map data for each constellation
-        constellation_dict: ConstellationDict = {
-            con: {
-                "stars": group.drop(columns="con").fillna("").to_dict("records"),
+        constellation_dict: ConstellationDict = {  # type: ignore[arg-type]
+            str(con): {
+                "stars": group.fillna("").to_dict("records"),
                 "star_count": len(group),
                 "full_name": constellation_names[con.upper()],
                 "lines": constellation_lines[constellation_names[con.upper()]],
             }
             # group stars by constellation it belongs to
-            for con, group in df_cleaned.groupby("con")
+            for con, group in df.groupby("con")
         }
 
         return constellation_dict
+
+    def _delete_file(self, file_path: Path) -> None:
+        """Delete the specified file path."""
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if file_path.exists():
+            file_path.unlink()
 
     def generate_data_file(self) -> None:
         """Generate a Python dictionary data file from processed constellation data."""

@@ -1,27 +1,13 @@
-from typing import Protocol, TypedDict
+from typing import Protocol
+
+from backend.app.models.constellation_models import ConstellationModel, StarModel
+from pandas.core.interchange.dataframe_protocol import DataFrame
 
 type ConstellationLines = dict[str, list[list[int]]]
 type ConstellationNames = dict[str, str]
 type FlatStarIds = set[int]
 
-
-class StarData(TypedDict):
-    hip: int
-    proper: str
-    ra: float
-    dec: float
-    mag: float
-
-
-class ConstellationEntry(TypedDict):
-    stars: list[StarData]
-    star_count: int
-    full_name: str
-    lines: list[list[int]]
-
-
-type ConstellationDict = dict[str, ConstellationEntry]
-
+type ConstellationDict = dict[str, ConstellationModel]
 type ConstellationData = tuple[ConstellationLines, ConstellationNames, FlatStarIds, ConstellationDict]
 
 
@@ -36,11 +22,16 @@ class DataProcessorInterface(Protocol):
 
     def _process_dat_constellation_lines(self) -> ConstellationLines: ...
 
-    def _process_csv_constellations(
+    def _filter_csv_constellations(
         self,
+        flat_star_ids: FlatStarIds,
+    ) -> DataFrame: ...
+
+    def _combine_data_into_constellation_dict(
+        self,
+        df: DataFrame,
         constellation_lines: ConstellationLines,
         constellation_names: ConstellationNames,
-        flat_star_ids: FlatStarIds,
     ) -> ConstellationDict: ...
 
     def _transform_star_ids_into_set(self, constellation_stars_dict: ConstellationLines) -> FlatStarIds: ...
