@@ -409,11 +409,13 @@
 ["91117", "90135"]
 ["91117", "90595"]
 
-* SerpensA
+# CHANGED (prev: SerA) by styslav.v@gmail.com  as it doesn't match HYG v 4.2
+* SerpensCaput
 
 ["84880", "86263", "86565", "89962", "92946"]
 
-* SerpensB
+# CHANGED (prev: SerB) by styslav.v@gmail.com  as it doesn't match HYG v 4.2
+* SerpensCauda
 
 ["77516", "77622", "77070", "76276", "77233", "77450", "78072", "77233"]
 
