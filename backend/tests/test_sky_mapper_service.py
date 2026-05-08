@@ -1,17 +1,26 @@
 import pytest
 from pandas import DataFrame
 
+from backend.app.repository.constellation_repository import ConstellationRepository
 from backend.app.repository.repository_interfaces import ConstellationRepositoryInterface
 from backend.app.services.service_interfaces import (
     ObserverContext,
     SkyCalculatorInterface,
+    SkyMapperServiceInterface,
 )
+from backend.app.services.sky_calculator_service import SkyCalculatorService
+from backend.app.services.sky_mapper_service import SkyMapperService
 from backend.tests.test_fixtures import (
     AUTUMN_MORNING,
     KYIV_LAT,
     KYIV_LON,
+    LST_EXPECTED,
+    MOCK_STARS_SPRING_KYIV,
+    MOCK_STARS_SPRING_NORTH_POLE,
+    MOCK_STARS_WINTER_KYIV,
     NORTH_POLE_LAT,
     NORTH_POLE_LON,
+    SOUTH_POLE_LAT,
     SOUTH_POLE_LON,
     SPRING_EVENING,
     WINTER_EVENING,
