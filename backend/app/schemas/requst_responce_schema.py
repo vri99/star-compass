@@ -1,7 +1,8 @@
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
+
+from pydantic import BaseModel, Field
 
 from backend.app.schemas.star_constellation_schema import ConstellationSchema
-from pydantic import BaseModel, Field
 
 
 class SkyRequest(BaseModel):

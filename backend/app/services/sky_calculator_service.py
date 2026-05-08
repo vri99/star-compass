@@ -65,7 +65,7 @@ class SkyCalculatorService(SkyCalculatorInterface):
 
         return alt_grid, az_grid
 
-    def get_visible_constellations(self, ctx: ObserverContext) -> set[str]:
+    def get_visible_constellation_names(self, ctx: ObserverContext) -> set[str]:
         """Get all visible constellations for the user location."""
         icrs_frame: SkyCoord = self._build_ICRS_frame(ctx)
 

@@ -79,12 +79,12 @@ class TestSkyCalculator:
             (KYIV_LAT, KYIV_LON, {"BOO"}),
         ],
     )
-    def test_get_visible_constellations(
+    def test_get_visible_constellation_names(
         self, lon: float, lat: float, expected: set[str], sky_calculator: SkyCalculatorService
     ) -> None:
         observer_ctx: ObserverContext = ObserverContext(SPRING_EVENING, lon, lat)
 
-        constellations: set[str] = sky_calculator.get_visible_constellations(observer_ctx)
+        constellations: set[str] = sky_calculator.get_visible_constellation_names(observer_ctx)
 
         assert expected.issubset(constellations)
 

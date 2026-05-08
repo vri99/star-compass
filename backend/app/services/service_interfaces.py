@@ -9,6 +9,7 @@ from astropy.time import Time  # type: ignore[import-untyped]
 from astropy.units import Quantity  # type: ignore[import-untyped]
 from backend.app.schemas.requst_responce_schema import SkyResponse
 from backend.app.schemas.star_constellation_schema import ConstellationSchema, StarSchema
+from pandas import DataFrame
 
 
 @dataclass
@@ -55,7 +56,7 @@ class SkyCalculatorInterface(Protocol):
         ctx: ObserverContext,
     ) -> SkyCoord: ...
 
-    def get_visible_constellations(self, ctx: ObserverContext) -> set[str]: ...
+    def get_visible_constellation_names(self, ctx: ObserverContext) -> set[str]: ...
 
     @property
     def _sky_2d_meshgrid(
@@ -64,7 +65,9 @@ class SkyCalculatorInterface(Protocol):
 
 
 class SkyMapperServiceInterface(Protocol):
-    def build_response(self) -> SkyResponse: ...
+    def _get_constellations_by_names(self, observer_context: ObserverContext) -> DataFrame: ...
+
+    def build_response(self, observer_context: ObserverContext) -> SkyResponse: ...
 
     def build_constellation_schema(self) -> list[ConstellationSchema]: ...
 
