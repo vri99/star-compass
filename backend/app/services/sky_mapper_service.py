@@ -24,22 +24,3 @@ class SkyMapperService(SkyMapperServiceInterface):
 
     def build_response(self, observer_context: ObserverContext) -> SkyResponse:
         pass
-
-
-# SkyService.build_response(date, lon, lat)  ← оркестратор
-#     ↓
-# 1. SkyCalculatorService.get_visible_constellation_names()
-#     ↓
-# 2. ConstellationRepository.get_constellations_by_names()
-#     ↓
-# 3. ConstellationRepository.get_ra_dec_values()
-#     ↓
-# 4. SkyCalculatorService.convert_icrs_into_az_alt()
-#     ↓
-# 5. ConstellationRepository.update_alt_az()
-#     ↓
-# 6. ConstellationRepository.get_converted_constellation_dict()
-#     ↓
-# 7. SkyMapperService.to_schema()  ← тільки конвертація в DTO
-#     ↓
-# SkyResponse
