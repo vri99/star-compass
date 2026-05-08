@@ -1,7 +1,8 @@
 from typing import Protocol
 
-from backend.app.models.constellation_models import ConstellationModel, StarModel
 from pandas.core.interchange.dataframe_protocol import DataFrame
+
+from backend.app.models.constellation_models import ConstellationModel
 
 type ConstellationLines = dict[str, list[list[int]]]
 type ConstellationNames = dict[str, str]
@@ -13,9 +14,9 @@ type ConstellationData = tuple[ConstellationLines, ConstellationNames, FlatStarI
 
 class DataProcessorInterface(Protocol):
     __HYG_file_path: str
-    __constellation_names_file: str
-    __constellation_lines_file: str
-    _constellation_data_file: str
+    __constellation_names_file_path: str
+    __constellation_lines_file_path: str
+    _constellation_data_file_path: str
     __MAX_MAGNITUDE: float
 
     def _process_dat_constellation_list(self) -> ConstellationNames: ...

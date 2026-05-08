@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+
 from backend.app.data.data_processor import DataProcessor
 from backend.app.data.data_processor_interfaces import ConstellationData
 

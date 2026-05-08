@@ -3,6 +3,8 @@ from collections import defaultdict
 from pathlib import Path
 
 import pandas as pd
+from pandas import DataFrame
+
 from backend.app.data.data_processor_interfaces import (
     ConstellationData,
     ConstellationDict,
@@ -11,7 +13,6 @@ from backend.app.data.data_processor_interfaces import (
     DataProcessorInterface,
     FlatStarIds,
 )
-from pandas import DataFrame
 
 BASE_DIR = Path(__file__).parent
 
