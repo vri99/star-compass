@@ -6,6 +6,7 @@ import pytest
 from astropy.coordinates import EarthLocation, SkyCoord  # type: ignore[import-untyped]
 from astropy.time import Time  # type: ignore[import-untyped]
 
+from backend.app.services.service_interfaces import ObserverContext
 from backend.app.services.sky_calculator_service import SkyCalculatorService
 from backend.tests.test_fixtures import (
     KYIV_LAT,
@@ -26,18 +27,23 @@ type NpFloat = npt.NDArray[np.float64]
 
 
 @pytest.fixture
+def observer_ctx() -> ObserverContext:
+    return ObserverContext(SPRING_EVENING, KYIV_LON, KYIV_LAT)
+
+
+@pytest.fixture
 def sky_calculator() -> SkyCalculatorService:
-    return SkyCalculatorService(SPRING_EVENING, KYIV_LON, KYIV_LAT)
+    return SkyCalculatorService()
 
 
 class TestSkyCalculator:
-    def test_user_location_on_earth(self, sky_calculator: SkyCalculatorService) -> None:
-        loc: EarthLocation = sky_calculator._user_location_on_earth
+    def test_user_location_on_earth(self, observer_ctx: ObserverContext) -> None:
+        loc: EarthLocation = observer_ctx.user_location_on_earth
 
         assert isinstance(loc, EarthLocation)
 
-    def test__user_date_to_earth_time(self, sky_calculator: SkyCalculatorService):
-        time: Time = sky_calculator._user_date_to_earth_time
+    def test__user_date_to_earth_time(self, observer_ctx: ObserverContext):
+        time: Time = observer_ctx.user_date_to_earth_time
 
         assert isinstance(time, Time)
 
@@ -56,9 +62,11 @@ class TestSkyCalculator:
         assert az_grid.min() == 0.0
         assert az_grid.max() == 360.0
 
-    def test_build_ICRS_frame(self, sky_calculator: SkyCalculatorService) -> None:  # noqa: N802
+    def test_build_ICRS_frame(  # noqa: N802
+        self, sky_calculator: SkyCalculatorService, observer_ctx: ObserverContext
+    ) -> None:
 
-        icrs_frame: SkyCoord = sky_calculator._build_ICRS_frame()
+        icrs_frame: SkyCoord = sky_calculator._build_ICRS_frame(observer_ctx)
 
         assert isinstance(icrs_frame, SkyCoord)
         assert icrs_frame.frame.name == "icrs"
@@ -71,10 +79,12 @@ class TestSkyCalculator:
             (KYIV_LAT, KYIV_LON, {"BOO"}),
         ],
     )
-    def test_get_visible_constellations(self, lon: float, lat: float, expected: set[str]) -> None:
-        sky_calculator: SkyCalculatorService = SkyCalculatorService(SPRING_EVENING, lon, lat)
+    def test_get_visible_constellations(
+        self, lon: float, lat: float, expected: set[str], sky_calculator: SkyCalculatorService
+    ) -> None:
+        observer_ctx: ObserverContext = ObserverContext(SPRING_EVENING, lon, lat)
 
-        constellations: set[str] = sky_calculator.get_visible_constellations()
+        constellations: set[str] = sky_calculator.get_visible_constellations(observer_ctx)
 
         assert expected.issubset(constellations)
 
@@ -87,23 +97,31 @@ class TestSkyCalculator:
         ],
         ids=["spring_kyiv", "spring_north_pole", "winter_kyiv"],
     )
-    def test_convert_icrs_into_az_alt(self, lat: float, lon: float, date: datetime, stars: set[str]) -> None:
-        calculator: SkyCalculatorService = SkyCalculatorService(date, lon, lat)
+    def test_convert_icrs_into_az_alt(
+        self, lat: float, lon: float, date: datetime, stars: set[str], sky_calculator: SkyCalculatorService
+    ) -> None:
+        observer_ctx: ObserverContext = ObserverContext(date, lon, lat)
+
         ra: NpFloat = np.array([s[0] for s in stars])
         dec: NpFloat = np.array([s[1] for s in stars])
         expected_alt: NpFloat = np.array([s[2] for s in stars])
         expected_az: NpFloat = np.array([s[3] for s in stars])
 
-        alt, az = calculator.convert_icrs_into_az_alt(ra, dec)
+        alt, az = sky_calculator.convert_icrs_into_az_alt(observer_ctx, ra, dec)
 
         assert alt == pytest.approx(expected_alt, abs=0.001)
         assert az == pytest.approx(expected_az, abs=0.001)
 
     @pytest.mark.parametrize("lat,lon,date,expected_lst_range", LST_EXPECTED)
     def test_astronomy_time_for_location(
-        self, lat: float, lon: float, date: datetime, expected_lst_range: set[str]
+        self,
+        lat: float,
+        lon: float,
+        date: datetime,
+        expected_lst_range: set[str],
     ) -> None:
-        calculator: SkyCalculatorService = SkyCalculatorService(date, lon, lat)
-        result: float = calculator.astronomy_time_for_location
+        observer_ctx: ObserverContext = ObserverContext(date, lon, lat)
+
+        result: float = observer_ctx.astronomy_time_for_location
 
         assert round(result, 4) == pytest.approx(expected_lst_range, abs=0.001)
