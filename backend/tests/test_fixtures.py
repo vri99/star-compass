@@ -12,6 +12,7 @@ WINTER_EVENING = datetime(2026, 1, 15, 21, 0, 0)
 SUMMER_MIDNIGHT = datetime(2026, 7, 1, 0, 0, 0)
 AUTUMN_MORNING = datetime(2026, 10, 10, 6, 0, 0)
 
+# ra, dec, alt, az
 MOCK_STARS_SPRING_KYIV = [
     (88.793, 7.407, -9.1820, 293.6009),
     (101.287, -16.716, -20.2629, 267.9606),

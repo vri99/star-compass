@@ -5,6 +5,7 @@ import numpy.typing as npt
 import pytest
 from astropy.coordinates import EarthLocation, SkyCoord  # type: ignore[import-untyped]
 from astropy.time import Time  # type: ignore[import-untyped]
+
 from backend.app.services.sky_calculator_service import SkyCalculatorService
 from backend.tests.test_fixtures import (
     KYIV_LAT,
@@ -86,7 +87,7 @@ class TestSkyCalculator:
         ],
         ids=["spring_kyiv", "spring_north_pole", "winter_kyiv"],
     )
-    def test_convert_icrs_into_az_alt(self, lat, lon, date, stars):
+    def test_convert_icrs_into_az_alt(self, lat: float, lon: float, date: datetime, stars: set[str]) -> None:
         calculator: SkyCalculatorService = SkyCalculatorService(date, lon, lat)
         ra: NpFloat = np.array([s[0] for s in stars])
         dec: NpFloat = np.array([s[1] for s in stars])
