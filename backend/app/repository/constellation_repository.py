@@ -5,9 +5,10 @@ import numpy.typing as npt
 import pandas as pd
 from backend.app.data.data_processor_interfaces import ConstellationDict
 from backend.app.data.files.constellation_data import CONSTELLATIONS_DATA
+from backend.app.repository.repository_interfaces import ConstellationRepositoryInterface
 
 
-class ConstellationRepository:
+class ConstellationRepository(ConstellationRepositoryInterface):
     _instance = None
     _df: pd.DataFrame = None
 
@@ -32,8 +33,8 @@ class ConstellationRepository:
     def get_all_constellations(self) -> pd.DataFrame:
         return self._df.copy()
 
-    def get_constellations_by_names(self, constellation_names: list[str]) -> pd.DataFrame:
-        return self._df[self._df["con"].isin(constellation_names)]
+    def get_constellations_by_names(self, constellation_names: set[str]) -> pd.DataFrame:
+        return self._df[self._df["con"].isin(constellation_names)].copy()
 
     def update_alt_az(self, alt: npt.NDArray[np.float64], az: npt.NDArray[np.float64]) -> None:
 
@@ -45,6 +46,7 @@ class ConstellationRepository:
     ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         return self._df["ra"].values, self._df["dec"].values
 
+    # TODO: DELETE?
     def get_alt_az_values(
         self,
     ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
@@ -52,3 +54,8 @@ class ConstellationRepository:
 
     def filter_alt_above_zero_stars(self) -> pd.DataFrame:
         return self._df[self._df["alt"] > self.__STAR_ALTITUDE_FILTER]
+
+    def get_converted_constellation_dict(self) -> ConstellationDict:
+        self.filter_alt_above_zero_stars()
+
+        return self._df.to_dict("index")
