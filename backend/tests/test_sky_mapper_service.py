@@ -27,7 +27,20 @@ from backend.tests.test_fixtures import (
 )
 
 
-class TestSkyMapperService:
+@pytest.fixture
+def observer_ctx() -> ObserverContext:
+    return ObserverContext(SPRING_EVENING, KYIV_LON, KYIV_LAT)
+
+
+@pytest.fixture(scope="class")
+def sky_mapper_service() -> SkyMapperServiceInterface:
+    sky_calculator: SkyCalculatorInterface = SkyCalculatorService()
+    constellation_repository: ConstellationRepositoryInterface = ConstellationRepository()
+
+    return SkyMapperService(sky_calculator, constellation_repository)
+
+
+class TestSkyCalculatorService:
     @pytest.mark.parametrize(
         "observer_context",
         [
