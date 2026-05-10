@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import numpy as np
 import numpy.typing as npt
 from astropy import units as u
