@@ -1,13 +1,13 @@
 from datetime import datetime
 
 import numpy as np
-import numpy.typing as npt
 import pytest
 from astropy.coordinates import EarthLocation, SkyCoord  # type: ignore[import-untyped]
 from astropy.time import Time  # type: ignore[import-untyped]
 
 from backend.app.services.service_interfaces import ObserverContext
 from backend.app.services.sky_calculator_service import SkyCalculatorService
+from backend.app.types import NpFloat
 from backend.tests.test_fixtures import (
     KYIV_LAT,
     KYIV_LON,
@@ -23,15 +23,16 @@ from backend.tests.test_fixtures import (
     WINTER_EVENING,
 )
 
-type NpFloat = npt.NDArray[np.float64]
-
 
 @pytest.fixture(scope="class")
 def observer_ctx() -> ObserverContext:
+    """Provide a default Kyiv spring-evening observer context for the test class."""
     return ObserverContext(SPRING_EVENING, KYIV_LON, KYIV_LAT)
 
 
 class TestSkyCalculatorService:
+    """Tests for SkyCalculatorService — verifies coordinate transformations and constellation visibility."""
+
     def test_user_location_on_earth(self, observer_ctx: ObserverContext) -> None:
         loc: EarthLocation = observer_ctx.user_location_on_earth
 
@@ -93,7 +94,7 @@ class TestSkyCalculatorService:
         ],
         ids=["spring_kyiv", "spring_north_pole", "winter_kyiv"],
     )
-    def test_convert_icrs_into_az_alt(
+    def test_convert_icrs_into_alt_az(
         self, lat: float, lon: float, date: datetime, stars: set[str], sky_calculator: SkyCalculatorService
     ) -> None:
         observer_ctx: ObserverContext = ObserverContext(date, lon, lat)
@@ -103,7 +104,7 @@ class TestSkyCalculatorService:
         expected_alt: NpFloat = np.array([s[2] for s in stars])
         expected_az: NpFloat = np.array([s[3] for s in stars])
 
-        alt, az = sky_calculator.convert_icrs_into_az_alt(observer_ctx, ra, dec)
+        alt, az = sky_calculator.convert_icrs_into_alt_az(observer_ctx, ra, dec)
 
         assert alt == pytest.approx(expected_alt, abs=0.001)
         assert az == pytest.approx(expected_az, abs=0.001)

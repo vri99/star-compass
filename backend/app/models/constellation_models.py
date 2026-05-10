@@ -8,10 +8,13 @@ class ConstellationModel(TypedDict):
 
 class StarModel(TypedDict):
     # The Hipparchus star catalogue
-    # hip: int
+    hip: int
 
     # star name
     proper: str
+
+    # constellation name
+    con: str
 
     # absolute coordinates of a star in the universe regardless of the viewer
     ra: float  # Right Ascension (longitude) 0°–360°

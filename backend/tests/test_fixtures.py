@@ -1,5 +1,8 @@
+"""Shared test constants: geographic coordinates and timestamped sky observation scenarios."""
+
 from datetime import datetime
 
+# Geographic coordinates used across tests
 KYIV_LAT = 50.4
 KYIV_LON = 30.5
 NORTH_POLE_LAT = 90.0
@@ -7,6 +10,7 @@ NORTH_POLE_LON = 0.0
 SOUTH_POLE_LAT = -90.0
 SOUTH_POLE_LON = 0.0
 
+# Observation timestamps covering the four seasons
 SPRING_EVENING = datetime(2026, 4, 29, 21, 0, 0)
 WINTER_EVENING = datetime(2026, 1, 15, 21, 0, 0)
 SUMMER_MIDNIGHT = datetime(2026, 7, 1, 0, 0, 0)

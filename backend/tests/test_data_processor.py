@@ -14,6 +14,8 @@ def constellation_data(data_processor: DataProcessor) -> ConstellationData:
 
 @pytest.mark.dependency()
 class TestDataProcessor:
+    """Validates that DataProcessor correctly parses and transforms raw constellation source files."""
+
     def test_all_87_constellation_present(
         self,
         constellation_data: ConstellationData,

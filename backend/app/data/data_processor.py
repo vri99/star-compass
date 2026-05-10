@@ -19,6 +19,8 @@ BASE_DIR = Path(__file__).parent
 
 
 class DataProcessor(DataProcessorInterface):
+    """Parses raw constellation source files and produces structured DataFrames and a generated data file."""
+
     __HYG_file_path: str = BASE_DIR / "files" / "hyg_v42.csv"
     __constellation_names_file_path: str = BASE_DIR / "files" / "constellation_names.dat"
     __constellation_lines_file_path: str = BASE_DIR / "files" / "constellation_lines_simplified.dat"
@@ -127,6 +129,7 @@ class DataProcessor(DataProcessorInterface):
         constellation_lines: ConstellationLines,
         constellation_names: ConstellationNames,
     ) -> tuple[ConstellationDict, StarDict]:
+        """Join star data with constellation names and lines into serializable dicts."""
 
         df = df.fillna("")
         df["con"] = df["con"].str.upper()
