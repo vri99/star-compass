@@ -175,8 +175,3 @@ class DataProcessor(DataProcessorInterface):
                 f.write("CONSTELLATIONS = ")
                 f.write(json.dumps(constellations_list, indent=4, ensure_ascii=False))
                 f.write("\n")
-
-
-if __name__ == "__main__":
-    data_processor = DataProcessor()
-    data_processor.generate_data_file()
