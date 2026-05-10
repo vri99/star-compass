@@ -2,15 +2,15 @@ from typing import cast
 
 import numpy as np
 import numpy.typing as npt
-import pandas as pd
 from backend.app.data.data_processor_interfaces import ConstellationDict
 from backend.app.data.files.constellation_data import CONSTELLATIONS_DATA
 from backend.app.repository.repository_interfaces import ConstellationRepositoryInterface
+from pandas import DataFrame
 
 
 class ConstellationRepository(ConstellationRepositoryInterface):
     _instance = None
-    _df: pd.DataFrame = None
+    _df: DataFrame = None
 
     # Filter stars that are more than -5° below visible horizon
     __STAR_ALTITUDE_FILTER: int = -5
@@ -25,15 +25,17 @@ class ConstellationRepository(ConstellationRepositoryInterface):
         return cls._instance
 
     @staticmethod
-    def __prepare_dataframe() -> pd.DataFrame:
+    def __prepare_dataframe() -> DataFrame:
         print("Data Loading...")
 
-        return pd.DataFrame(cast(ConstellationDict, CONSTELLATIONS_DATA))
+        data: DataFrame = DataFrame.from_dict(cast(ConstellationDict, CONSTELLATIONS_DATA), orient="index")
 
-    def get_all_constellations(self) -> pd.DataFrame:
+        return data.reset_index().rename(columns={"index": "con"})
+
+    def get_all_constellations(self) -> DataFrame:
         return self._df.copy()
 
-    def get_constellations_by_names(self, constellation_names: set[str]) -> pd.DataFrame:
+    def get_constellations_by_names(self, constellation_names: set[str]) -> DataFrame:
         return self._df[self._df["con"].isin(constellation_names)].copy()
 
     def update_alt_az(self, alt: npt.NDArray[np.float64], az: npt.NDArray[np.float64]) -> None:
@@ -52,7 +54,7 @@ class ConstellationRepository(ConstellationRepositoryInterface):
     ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         return self._df["alt"].values, self._df["az"].values
 
-    def filter_alt_above_zero_stars(self) -> pd.DataFrame:
+    def filter_alt_above_zero_stars(self) -> DataFrame:
         return self._df[self._df["alt"] > self.__STAR_ALTITUDE_FILTER]
 
     def get_converted_constellation_dict(self) -> ConstellationDict:
