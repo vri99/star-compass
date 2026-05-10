@@ -42,6 +42,7 @@ class TestSkyCalculator:
 
         assert isinstance(time, Time)
 
+    # fixtures: sky_calculator, - see conftest.py
     def test_generate_sky_2d_meshgrid(self, sky_calculator) -> None:
         alt_grid, az_grid = sky_calculator._sky_2d_meshgrid
 

@@ -28,6 +28,7 @@ class TestSkyCalculatorService:
             ObserverContext(SPRING_EVENING, SOUTH_POLE_LON, NORTH_POLE_LAT),
         ],
     )
+    # fixtures: sky_calculator, constellation_repository - see conftest.py
     def test_get_constellations_by_names_match_all_constellations(
         self,
         observer_context: ObserverContext,
@@ -43,6 +44,3 @@ class TestSkyCalculatorService:
         )
 
         assert len(visible_constellation_names_set) == len(constellations_from_df)
-
-
-# TODO: показник світлового забруднення на фронтенд
