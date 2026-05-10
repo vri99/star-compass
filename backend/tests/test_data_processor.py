@@ -18,7 +18,8 @@ class TestDataProcessor:
         self,
         constellation_data: ConstellationData,
     ) -> None:
-        *_, constellation_dict = constellation_data
+        *_, data = constellation_data
+        constellation_dict, _ = data
 
         assert len(constellation_dict) == 87
 

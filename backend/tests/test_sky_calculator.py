@@ -31,7 +31,7 @@ def observer_ctx() -> ObserverContext:
     return ObserverContext(SPRING_EVENING, KYIV_LON, KYIV_LAT)
 
 
-class TestSkyCalculator:
+class TestSkyCalculatorService:
     def test_user_location_on_earth(self, observer_ctx: ObserverContext) -> None:
         loc: EarthLocation = observer_ctx.user_location_on_earth
 
