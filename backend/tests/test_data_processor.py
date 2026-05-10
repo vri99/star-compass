@@ -7,11 +7,6 @@ from backend.app.data.data_processor_interfaces import ConstellationData
 
 
 @pytest.fixture(scope="class")
-def data_processor():
-    return DataProcessor()
-
-
-@pytest.fixture(scope="class")
 def constellation_data(data_processor: DataProcessor) -> ConstellationData:
     # noinspection PyProtectedMember
     return data_processor._get_processed_constellation_data()

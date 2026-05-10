@@ -26,14 +26,9 @@ from backend.tests.test_fixtures import (
 type NpFloat = npt.NDArray[np.float64]
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def observer_ctx() -> ObserverContext:
     return ObserverContext(SPRING_EVENING, KYIV_LON, KYIV_LAT)
-
-
-@pytest.fixture
-def sky_calculator() -> SkyCalculatorService:
-    return SkyCalculatorService()
 
 
 class TestSkyCalculator:
