@@ -1,31 +1,29 @@
 from typing import cast
 
-import numpy as np
-import numpy.typing as npt
 from backend.app.data.data_processor_interfaces import ConstellationDict, StarDict
 from backend.app.data.files.constellation_data import CONSTELLATIONS, STARS
 from backend.app.repository.repository_interfaces import ConstellationRepositoryInterface
+from backend.app.types import NpFloat
 from pandas import DataFrame
 
 
 class ConstellationRepository(ConstellationRepositoryInterface):
+    """Singleton repository that loads constellation and star data into memory on first instantiation."""
+
     _instance = None
     _df: DataFrame = None
 
-    # Filter stars that are more than -5° below visible horizon
-    __STAR_ALTITUDE_FILTER: int = -5
-
-    # Singleton Class
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            # Load data into memory
+            # load static datasets once — avoids re-reading on every request
             cls.df_constellations, cls.df_stars = cls.__prepare_dataframe()
 
         return cls._instance
 
     @staticmethod
     def __prepare_dataframe() -> tuple[DataFrame, DataFrame]:
+        """Load raw constellation/star dicts into DataFrames with normalized index columns."""
         print("Data Loading...")
 
         constellation_data: DataFrame = DataFrame.from_dict(
@@ -34,36 +32,30 @@ class ConstellationRepository(ConstellationRepositoryInterface):
 
         star_data: DataFrame = DataFrame.from_dict(cast(StarDict, STARS), orient="index")
 
+        # reset_index promotes dict keys to a column; rename gives it a domain-meaningful name
         return constellation_data.reset_index().rename(
             columns={"index": "con"}
         ), star_data.reset_index().rename(columns={"index": "hip"})
 
-    def get_all_constellations(self) -> DataFrame:
-        return self._df.copy()
-
     def get_constellations_by_names(self, constellation_names: set[str]) -> DataFrame:
+        """Return a filtered copy of the constellations DataFrame matching the given name set."""
         return self.df_constellations[self.df_constellations["con"].isin(constellation_names)].copy()
 
-    def update_alt_az(self, alt: npt.NDArray[np.float64], az: npt.NDArray[np.float64]) -> None:
+    def get_stars_by_constellation(self, constellations: DataFrame) -> DataFrame:
+        """Return all stars that belong to any of the given constellations."""
+        return self.df_stars[self.df_stars["con"].isin(constellations["con"])].copy()
 
-        self._df["az"] = az
-        self._df["alt"] = alt
+    def get_ra_dec_values(self, stars: DataFrame) -> tuple[NpFloat, NpFloat]:
+        """Extract right ascension and declination arrays from the stars DataFrame."""
+        return stars["ra"].to_numpy(), stars["dec"].to_numpy()
 
-    def get_ra_dec_values(
-        self,
-    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
-        return self._df["ra"].values, self._df["dec"].values
+    def update_stars_with_alt_az(self, stars: DataFrame, alt, az) -> DataFrame:
+        """Attach rounded altitude/azimuth values to the stars DataFrame in-place."""
+        stars["alt"] = stars["alt"].round(3)
+        stars["az"] = stars["az"].round(3)
 
-    # TODO: DELETE?
-    def get_alt_az_values(
-        self,
-    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
-        return self._df["alt"].values, self._df["az"].values
+        return stars
 
-    def filter_alt_above_zero_stars(self) -> DataFrame:
-        return self._df[self._df["alt"] > self.__STAR_ALTITUDE_FILTER]
-
-    def get_converted_constellation_dict(self) -> ConstellationDict:
-        self.filter_alt_above_zero_stars()
-
-        return self._df.to_dict("index")
+    def df_to_dict(self, data: DataFrame, rename_columns: dict[str, str]) -> list[dict]:
+        """Rename columns and convert the DataFrame to a list of row dicts."""
+        return data.rename(columns=rename_columns).to_dict(orient="records")

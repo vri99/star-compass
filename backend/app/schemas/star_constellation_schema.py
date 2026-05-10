@@ -6,6 +6,9 @@ class StarSchema(BaseModel):
     ra: float
     dec: float
 
+    alt: float
+    az: float
+
     # brightness
     mag: float
     # attributes
@@ -14,6 +17,6 @@ class StarSchema(BaseModel):
 
 
 class ConstellationSchema(BaseModel):
-    name: str
-    stars: list[StarSchema]
-    lines: list[list[str]]
+    id: str
+    full_name: str
+    lines: list[list[int]]

@@ -1,46 +1,33 @@
 import pytest
 from pandas import DataFrame
 
-from backend.app.repository.constellation_repository import ConstellationRepository
 from backend.app.repository.repository_interfaces import ConstellationRepositoryInterface
 from backend.app.services.service_interfaces import (
     ObserverContext,
     SkyCalculatorInterface,
-    SkyMapperServiceInterface,
 )
-from backend.app.services.sky_calculator_service import SkyCalculatorService
 from backend.app.services.sky_mapper_service import SkyMapperService
 from backend.tests.test_fixtures import (
     AUTUMN_MORNING,
     KYIV_LAT,
     KYIV_LON,
-    LST_EXPECTED,
-    MOCK_STARS_SPRING_KYIV,
-    MOCK_STARS_SPRING_NORTH_POLE,
-    MOCK_STARS_WINTER_KYIV,
     NORTH_POLE_LAT,
     NORTH_POLE_LON,
-    SOUTH_POLE_LAT,
     SOUTH_POLE_LON,
     SPRING_EVENING,
     WINTER_EVENING,
 )
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def observer_ctx() -> ObserverContext:
+    """Provide a default Kyiv spring-evening observer context for the test class."""
     return ObserverContext(SPRING_EVENING, KYIV_LON, KYIV_LAT)
 
 
-@pytest.fixture(scope="class")
-def sky_mapper_service() -> SkyMapperServiceInterface:
-    sky_calculator: SkyCalculatorInterface = SkyCalculatorService()
-    constellation_repository: ConstellationRepositoryInterface = ConstellationRepository()
-
-    return SkyMapperService(sky_calculator, constellation_repository)
-
-
 class TestSkyMapperService:
+    """Tests for SkyMapperService - verifies the full sky mapping pipeline end-to-end."""
+
     @pytest.mark.parametrize(
         "observer_context",
         [
@@ -66,3 +53,8 @@ class TestSkyMapperService:
         )
 
         assert len(visible_constellation_names_set) == len(constellations_from_df)
+
+    # fixtures: sky_mapper_service - see conftest.py
+    def test_build_response(self, observer_ctx, sky_mapper_service: SkyMapperService) -> None:
+
+        assert sky_mapper_service.build_response(observer_ctx) is not None
