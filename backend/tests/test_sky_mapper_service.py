@@ -40,7 +40,7 @@ def sky_mapper_service() -> SkyMapperServiceInterface:
     return SkyMapperService(sky_calculator, constellation_repository)
 
 
-class TestSkyCalculatorService:
+class TestSkyMapperService:
     @pytest.mark.parametrize(
         "observer_context",
         [
