@@ -15,7 +15,6 @@ from pandas import DataFrame
 class SkyMapperService(SkyMapperServiceInterface):
     """Orchestrates sky data retrieval and transformation into a structured API response."""
 
-    observer_context: ObserverContext
     __sky_calculator: SkyCalculatorInterface
     __constellation_repository: ConstellationRepositoryInterface
 
@@ -47,7 +46,7 @@ class SkyMapperService(SkyMapperServiceInterface):
         # rename DataFrame columns to match the schema field names before unpacking
         cons_list_dict: list[dict] = self.__constellation_repository.df_to_dict(constellations, {"con": "id"})
         stars_list_dict: list[dict] = self.__constellation_repository.df_to_dict(
-            constellations, {"proper": "name", "con": "constellation_name"}
+            stars, {"proper": "name", "con": "constellation_name"}
         )
 
         constellations_list: list[ConstellationSchema] = [ConstellationSchema(**c) for c in cons_list_dict]

@@ -35,9 +35,8 @@ def sky_calculator() -> SkyCalculatorService:
 
 @pytest.fixture(scope="session")
 def sky_mapper_service(
-    observer_ctx: ObserverContext,
     sky_calculator: SkyCalculatorInterface,
     constellation_repository: ConstellationRepositoryInterface,
 ) -> SkyMapperServiceInterface:
     """Assemble a SkyMapperService with all dependencies for integration testing."""
-    return SkyMapperService(observer_ctx, sky_calculator, constellation_repository)
+    return SkyMapperService(sky_calculator, constellation_repository)

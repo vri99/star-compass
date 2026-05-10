@@ -51,8 +51,8 @@ class ConstellationRepository(ConstellationRepositoryInterface):
 
     def update_stars_with_alt_az(self, stars: DataFrame, alt, az) -> DataFrame:
         """Attach rounded altitude/azimuth values to the stars DataFrame in-place."""
-        stars["alt"] = stars["alt"].round(3)
-        stars["az"] = stars["az"].round(3)
+        stars["alt"] = alt.round(3)
+        stars["az"] = az.round(3)
 
         return stars
 
