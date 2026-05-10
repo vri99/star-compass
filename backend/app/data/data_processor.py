@@ -128,8 +128,8 @@ class DataProcessor(DataProcessorInterface):
     ) -> ConstellationDict:
         # map data for each constellation
         constellation_dict: ConstellationDict = {  # type: ignore[arg-type]
-            str(con): {
-                "stars": group.fillna("").to_dict("records"),
+            con.upper(): {
+                "stars": group.drop(columns=["con"]).fillna("").to_dict("records"),
                 "star_count": len(group),
                 "full_name": constellation_names[con.upper()],
                 "lines": constellation_lines[constellation_names[con.upper()]],
@@ -165,3 +165,8 @@ class DataProcessor(DataProcessorInterface):
 
                 f.write(json.dumps(constellation_dict, indent=4, ensure_ascii=False))
                 f.write("\n")
+
+
+if __name__ == "__main__":
+    data_processor = DataProcessor()
+    data_processor.generate_data_file()
