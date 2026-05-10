@@ -10,10 +10,11 @@ from astropy.coordinates import (  # type: ignore[import-untyped]
 from astropy.time import Time  # type: ignore[import-untyped]
 from astropy.units import Quantity
 from backend.app.services.service_interfaces import ObserverContext, SkyCalculatorInterface
+from backend.app.types import NpFloat
 
 
 class SkyCalculatorService(SkyCalculatorInterface):
-    def _convert_to_deg(self, num_array: npt.NDArray[np.float64]) -> list[Quantity]:
+    def _convert_to_deg(self, num_array: NpFloat) -> list[Quantity]:
         """Convert 2D array of sky points into 1D array of astropy units."""
         """E.g. [[10.0, 45.0], [90.0, 180.0]] >> [10., 45., 90., 180.] deg"""
         return np.ravel(num_array) * u.deg
@@ -49,13 +50,13 @@ class SkyCalculatorService(SkyCalculatorInterface):
     @property
     def _sky_2d_meshgrid(
         self,
-    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    ) -> tuple[NpFloat, NpFloat]:
         """Generate a 2D meshgrid of altitude and azimuth values covering the visible sky."""
         # 0° to 360° - full compass
-        azimuths: npt.NDArray[np.float64] = np.linspace(0, 360, 20, dtype=np.float64)
+        azimuths: NpFloat = np.linspace(0, 360, 20, dtype=np.float64)
 
         # 10° to 90° - excludes horizon
-        altitudes: npt.NDArray[np.float64] = np.linspace(10, 90, 10, dtype=np.float64)
+        altitudes: NpFloat = np.linspace(10, 90, 10, dtype=np.float64)
 
         # alt_grid - sky is divided on 10 heights, az_grid - sky is divided on 20 directions
         # = 200 sky points
@@ -73,12 +74,12 @@ class SkyCalculatorService(SkyCalculatorInterface):
         # convert numpy str_ type into set unique constellation names
         return {str(x).strip().upper() for x in visible_constellations}
 
-    def convert_icrs_into_az_alt(
+    def convert_icrs_into_alt_az(
         self,
         ctx: ObserverContext,
-        star_ra_list: npt.NDArray[np.float64],
-        star_dec_list: npt.NDArray[np.float64],
-    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+        star_ra_list: NpFloat,
+        star_dec_list: NpFloat,
+    ) -> tuple[NpFloat, NpFloat]:
         """Convert star coordinates from ICRS (ra/dec) to horizontal system (alt/az) for the observer."""
         # build sky coordinates from equatorial ra/dec arrays
         cords: SkyCoord = SkyCoord(ra=star_ra_list * u.deg, dec=star_dec_list * u.deg, frame="icrs")

@@ -3,12 +3,12 @@ from datetime import datetime
 from typing import Protocol
 
 import numpy as np
-import numpy.typing as npt
 from astropy.coordinates import EarthLocation, Longitude, SkyCoord  # type: ignore[import-untyped]
 from astropy.time import Time  # type: ignore[import-untyped]
 from astropy.units import Quantity  # type: ignore[import-untyped]
 from backend.app.schemas.requst_responce_schema import SkyResponse
 from backend.app.schemas.star_constellation_schema import ConstellationSchema, StarSchema
+from backend.app.types import NpFloat
 from pandas import DataFrame
 
 
@@ -38,18 +38,18 @@ class ObserverContext:
         # Local Sidereal Time defines which part of the sky is currently overhead
         astronomy_time: Longitude = time.sidereal_time("mean", earth_location)
 
-        return astronomy_time.deg
+        return np.round(astronomy_time.deg, 3)
 
 
 class SkyCalculatorInterface(Protocol):
-    def _convert_to_deg(self, num_array: npt.NDArray[np.float64]) -> list[Quantity]: ...
+    def _convert_to_deg(self, num_array: NpFloat) -> list[Quantity]: ...
 
-    def convert_icrs_into_az_alt(
+    def convert_icrs_into_alt_az(
         self,
         ctx: ObserverContext,
-        star_ra_list: npt.NDArray[np.float64],
-        star_dec_list: npt.NDArray[np.float64],
-    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]: ...
+        star_ra_list: NpFloat,
+        star_dec_list: NpFloat,
+    ) -> tuple[NpFloat, NpFloat]: ...
 
     def _build_ICRS_frame(  # noqa: N802
         self,
@@ -61,16 +61,18 @@ class SkyCalculatorInterface(Protocol):
     @property
     def _sky_2d_meshgrid(
         self,
-    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]: ...
+    ) -> tuple[NpFloat, NpFloat]: ...
 
 
 class SkyMapperServiceInterface(Protocol):
     def _get_constellations_by_names(self, observer_context: ObserverContext) -> DataFrame: ...
 
+    def _get_stars_with_alt_az(
+        self, observer_context: ObserverContext, constellations: DataFrame
+    ) -> DataFrame: ...
+
+    def _convert_data_into_response(
+        self, constellations: DataFrame, stars: DataFrame
+    ) -> tuple[list[ConstellationSchema], list[StarSchema]]: ...
+
     def build_response(self, observer_context: ObserverContext) -> SkyResponse: ...
-
-    def build_constellation_schema(self) -> list[ConstellationSchema]: ...
-
-    def build_star_schema(self) -> StarSchema: ...
-
-    def update_stars_with_alt_az(self) -> StarSchema: ...
