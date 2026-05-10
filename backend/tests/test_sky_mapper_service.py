@@ -18,7 +18,7 @@ from backend.tests.test_fixtures import (
 )
 
 
-class TestSkyCalculatorService:
+class TestSkyMapperService:
     @pytest.mark.parametrize(
         "observer_context",
         [
