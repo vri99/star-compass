@@ -2,14 +2,17 @@ from typing import Protocol
 
 from pandas.core.interchange.dataframe_protocol import DataFrame
 
-from backend.app.models.constellation_models import ConstellationModel
+from backend.app.models.constellation_models import ConstellationModel, StarModel
 
 type ConstellationLines = dict[str, list[list[int]]]
 type ConstellationNames = dict[str, str]
 type FlatStarIds = set[int]
 
 type ConstellationDict = dict[str, ConstellationModel]
-type ConstellationData = tuple[ConstellationLines, ConstellationNames, FlatStarIds, ConstellationDict]
+type StarDict = dict[str, StarModel]
+type ConstellationData = tuple[
+    ConstellationLines, ConstellationNames, FlatStarIds, tuple[ConstellationDict, StarDict]
+]
 
 
 class DataProcessorInterface(Protocol):
@@ -33,7 +36,7 @@ class DataProcessorInterface(Protocol):
         df: DataFrame,
         constellation_lines: ConstellationLines,
         constellation_names: ConstellationNames,
-    ) -> ConstellationDict: ...
+    ) -> tuple[ConstellationDict, StarDict]: ...
 
     def _transform_star_ids_into_set(self, constellation_stars_dict: ConstellationLines) -> FlatStarIds: ...
 

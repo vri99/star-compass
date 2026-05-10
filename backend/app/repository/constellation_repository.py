@@ -2,8 +2,8 @@ from typing import cast
 
 import numpy as np
 import numpy.typing as npt
-from backend.app.data.data_processor_interfaces import ConstellationDict
-from backend.app.data.files.constellation_data import CONSTELLATIONS_DATA
+from backend.app.data.data_processor_interfaces import ConstellationDict, StarDict
+from backend.app.data.files.constellation_data import CONSTELLATIONS, STARS
 from backend.app.repository.repository_interfaces import ConstellationRepositoryInterface
 from pandas import DataFrame
 
@@ -20,23 +20,29 @@ class ConstellationRepository(ConstellationRepositoryInterface):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             # Load data into memory
-            cls._df = cls.__prepare_dataframe()
+            cls.df_constellations, cls.df_stars = cls.__prepare_dataframe()
 
         return cls._instance
 
     @staticmethod
-    def __prepare_dataframe() -> DataFrame:
+    def __prepare_dataframe() -> tuple[DataFrame, DataFrame]:
         print("Data Loading...")
 
-        data: DataFrame = DataFrame.from_dict(cast(ConstellationDict, CONSTELLATIONS_DATA), orient="index")
+        constellation_data: DataFrame = DataFrame.from_dict(
+            cast(ConstellationDict, CONSTELLATIONS), orient="index"
+        )
 
-        return data.reset_index().rename(columns={"index": "con"})
+        star_data: DataFrame = DataFrame.from_dict(cast(StarDict, STARS), orient="index")
+
+        return constellation_data.reset_index().rename(
+            columns={"index": "con"}
+        ), star_data.reset_index().rename(columns={"index": "hip"})
 
     def get_all_constellations(self) -> DataFrame:
         return self._df.copy()
 
     def get_constellations_by_names(self, constellation_names: set[str]) -> DataFrame:
-        return self._df[self._df["con"].isin(constellation_names)].copy()
+        return self.df_constellations[self.df_constellations["con"].isin(constellation_names)].copy()
 
     def update_alt_az(self, alt: npt.NDArray[np.float64], az: npt.NDArray[np.float64]) -> None:
 
