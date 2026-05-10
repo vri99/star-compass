@@ -13,9 +13,6 @@ class StarModel(TypedDict):
     # star name
     proper: str
 
-    # star name
-    proper: str
-
     # absolute coordinates of a star in the universe regardless of the viewer
     ra: float  # Right Ascension (longitude) 0°–360°
     dec: float  # Declination (latitude) -90°–+90°
