@@ -1,0 +1,19 @@
+from typing import Protocol
+
+from backend.app.types import NpFloat
+from pandas import DataFrame
+
+
+class ConstellationRepositoryInterface(Protocol):
+    @staticmethod
+    def __prepare_dataframe() -> tuple[DataFrame, DataFrame]: ...
+
+    def get_constellations_by_names(self, constellation_names: set[str]) -> DataFrame: ...
+
+    def get_ra_dec_values(self, stars: DataFrame) -> tuple[NpFloat, NpFloat]: ...
+
+    def update_stars_with_alt_az(self, stars: DataFrame, alt, az) -> DataFrame: ...
+
+    def get_stars_by_constellation(self, constellations: DataFrame) -> DataFrame: ...
+
+    def df_to_dict(self, data: DataFrame, rename_columns: dict[str, str]) -> list[dict]: ...

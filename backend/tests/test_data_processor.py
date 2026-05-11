@@ -7,11 +7,6 @@ from backend.app.data.data_processor_interfaces import ConstellationData
 
 
 @pytest.fixture(scope="class")
-def data_processor():
-    return DataProcessor()
-
-
-@pytest.fixture(scope="class")
 def constellation_data(data_processor: DataProcessor) -> ConstellationData:
     # noinspection PyProtectedMember
     return data_processor._get_processed_constellation_data()
@@ -19,11 +14,14 @@ def constellation_data(data_processor: DataProcessor) -> ConstellationData:
 
 @pytest.mark.dependency()
 class TestDataProcessor:
+    """Validates that DataProcessor correctly parses and transforms raw constellation source files."""
+
     def test_all_87_constellation_present(
         self,
         constellation_data: ConstellationData,
     ) -> None:
-        *_, constellation_dict = constellation_data
+        *_, data = constellation_data
+        constellation_dict, _ = data
 
         assert len(constellation_dict) == 87
 

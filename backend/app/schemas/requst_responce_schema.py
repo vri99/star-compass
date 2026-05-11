@@ -1,7 +1,8 @@
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 
-from backend.app.schemas.star_constellation_schema import ConstellationSchema
 from pydantic import BaseModel, Field
+
+from backend.app.schemas.star_constellation_schema import ConstellationSchema, StarSchema
 
 
 class SkyRequest(BaseModel):
@@ -11,5 +12,6 @@ class SkyRequest(BaseModel):
 
 
 class SkyResponse(BaseModel):
-    constellations: list[ConstellationSchema]
     astronomy_time: float
+    stars: list[StarSchema]
+    constellations: list[ConstellationSchema]

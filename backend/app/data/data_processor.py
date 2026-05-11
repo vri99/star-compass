@@ -12,12 +12,15 @@ from backend.app.data.data_processor_interfaces import (
     ConstellationNames,
     DataProcessorInterface,
     FlatStarIds,
+    StarDict,
 )
 
 BASE_DIR = Path(__file__).parent
 
 
 class DataProcessor(DataProcessorInterface):
+    """Parses raw constellation source files and produces structured DataFrames and a generated data file."""
+
     __HYG_file_path: str = BASE_DIR / "files" / "hyg_v42.csv"
     __constellation_names_file_path: str = BASE_DIR / "files" / "constellation_names.dat"
     __constellation_lines_file_path: str = BASE_DIR / "files" / "constellation_lines_simplified.dat"
@@ -109,7 +112,7 @@ class DataProcessor(DataProcessorInterface):
 
         filtered_data: DataFrame = self._filter_csv_constellations(flat_star_ids)
 
-        constellation_dict: ConstellationDict = self._combine_data_into_constellation_dict(
+        constellation_dict: tuple[ConstellationDict, StarDict] = self._combine_data_into_constellation_dict(
             filtered_data, constellation_lines, constellation_names
         )
 
@@ -125,20 +128,23 @@ class DataProcessor(DataProcessorInterface):
         df: DataFrame,
         constellation_lines: ConstellationLines,
         constellation_names: ConstellationNames,
-    ) -> ConstellationDict:
-        # map data for each constellation
-        constellation_dict: ConstellationDict = {  # type: ignore[arg-type]
-            str(con): {
-                "stars": group.fillna("").to_dict("records"),
-                "star_count": len(group),
-                "full_name": constellation_names[con.upper()],
-                "lines": constellation_lines[constellation_names[con.upper()]],
-            }
-            # group stars by constellation it belongs to
-            for con, group in df.groupby("con")
-        }
+    ) -> tuple[ConstellationDict, StarDict]:
+        """Join star data with constellation names and lines into serializable dicts."""
 
-        return constellation_dict
+        df = df.fillna("")
+        df["con"] = df["con"].str.upper()
+        df["full_name"] = df["con"].map(constellation_names)
+        df["lines"] = df["full_name"].map(constellation_lines)
+
+        stars_dict: StarDict = df.set_index("hip")[["proper", "ra", "dec", "mag", "con"]].to_dict(
+            orient="index"
+        )
+
+        constellation_dict = (
+            df.drop_duplicates("con").set_index("con")[["full_name", "lines"]].to_dict(orient="index")
+        )
+
+        return constellation_dict, stars_dict
 
     def _delete_file(self, file_path: Path) -> None:
         """Delete the specified file path."""
@@ -155,13 +161,20 @@ class DataProcessor(DataProcessorInterface):
         if not data_file_path.exists():
             # unpack only the final dict, discard intermediate data
             *_, constellation_dict = self._get_processed_constellation_data()
+            constellations_list, stars_list = constellation_dict
 
             # check if parent directory exists
             data_file_path.parent.mkdir(parents=True, exist_ok=True)
 
             with open(data_file_path, "w", encoding="utf-8") as f:
-                f.write("# WARNING: This is auto-generated file. Do not edit.\n")
-                f.write("CONSTELLATIONS_DATA = ")
+                f.write("# WARNING: This is an auto-generated file. Do not edit.\n\n")
 
-                f.write(json.dumps(constellation_dict, indent=4, ensure_ascii=False))
+                # Записуємо зірки
+                f.write("STARS = ")
+                f.write(json.dumps(stars_list, indent=4, ensure_ascii=False))
+                f.write("\n\n")
+
+                # Записуємо сузір'я
+                f.write("CONSTELLATIONS = ")
+                f.write(json.dumps(constellations_list, indent=4, ensure_ascii=False))
                 f.write("\n")

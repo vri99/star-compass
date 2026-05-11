@@ -1,1 +1,4 @@
+# Git LFS configuration for CSV files:
+# Enables LFS filtering, diffing, and merging while disabling text-style line ending conversions.
+
 *.csv filter=lfs diff=lfs merge=lfs -text
