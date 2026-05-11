@@ -169,12 +169,10 @@ class DataProcessor(DataProcessorInterface):
             with open(data_file_path, "w", encoding="utf-8") as f:
                 f.write("# WARNING: This is an auto-generated file. Do not edit.\n\n")
 
-                # Записуємо зірки
                 f.write("STARS = ")
                 f.write(json.dumps(stars_list, indent=4, ensure_ascii=False))
                 f.write("\n\n")
 
-                # Записуємо сузір'я
                 f.write("CONSTELLATIONS = ")
                 f.write(json.dumps(constellations_list, indent=4, ensure_ascii=False))
                 f.write("\n")
