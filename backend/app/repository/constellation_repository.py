@@ -24,7 +24,7 @@ class ConstellationRepository(ConstellationRepositoryInterface):
     @staticmethod
     def __prepare_dataframe() -> tuple[DataFrame, DataFrame]:
         """Load raw constellation/star dicts into DataFrames with normalized index columns."""
-        print("Data Loading...")
+        print("\nData Loading...")
 
         constellation_data: DataFrame = DataFrame.from_dict(
             cast(ConstellationDict, CONSTELLATIONS), orient="index"
