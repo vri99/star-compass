@@ -6,7 +6,7 @@ authors = [
     { name = "Rostyslav", email = "styslav.v@gmail.com" }
 ]
 license = "MIT"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "fastapi (>=0.136.1,<0.137.0)",
     "uvicorn (>=0.46.0,<0.47.0)",
@@ -34,6 +34,10 @@ dev = [
     "pytest-httpx (>=0.36.2,<0.37.0)",
 ]
 
+[tool.poetry]
+name = "star-compass-backend"
+package-mode = false
+
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP"]
 
@@ -42,4 +46,4 @@ line-length = 110
 
 [tool.pytest]
 pythonpath = ["."]
-testpaths = ["backend/tests"]
+testpaths = ["tests"]
