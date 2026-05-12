@@ -7,7 +7,6 @@ from backend.app.data.data_processor_interfaces import DataProcessorInterface
 from backend.app.repository.constellation_repository import ConstellationRepository
 from backend.app.repository.repository_interfaces import ConstellationRepositoryInterface
 from backend.app.services.service_interfaces import (
-    ObserverContext,
     SkyCalculatorInterface,
     SkyMapperServiceInterface,
 )

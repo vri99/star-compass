@@ -28,9 +28,6 @@ class DataProcessor(DataProcessorInterface):
 
     __MAX_MAGNITUDE: float = 5.0
 
-    def __init__(self) -> None:
-        pass
-
     def _process_dat_constellation_list(self) -> ConstellationNames:
         """Parse constellation names file and return a mapping of 3 char id to full name."""
         df: DataFrame = pd.read_csv(

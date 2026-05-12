@@ -3,13 +3,7 @@ from pathlib import Path
 import pytest
 
 from backend.app.data.data_processor import DataProcessor
-from backend.app.data.data_processor_interfaces import ConstellationData
-
-
-@pytest.fixture(scope="class")
-def constellation_data(data_processor: DataProcessor) -> ConstellationData:
-    # noinspection PyProtectedMember
-    return data_processor._get_processed_constellation_data()
+from backend.app.data.data_processor_interfaces import DataProcessorInterface
 
 
 @pytest.mark.dependency()
@@ -18,18 +12,18 @@ class TestDataProcessor:
 
     def test_all_87_constellation_present(
         self,
-        constellation_data: ConstellationData,
+        data_processor: DataProcessorInterface,
     ) -> None:
-        *_, data = constellation_data
+        *_, data = data_processor._get_processed_constellation_data()
         constellation_dict, _ = data
 
         assert len(constellation_dict) == 87
 
     def test_constellation_contains_all_stars(
         self,
-        constellation_data: ConstellationData,
+        data_processor: DataProcessorInterface,
     ) -> None:
-        con_lines, _, flat_ids, _ = constellation_data
+        con_lines, _, flat_ids, _ = data_processor._get_processed_constellation_data()
 
         for lines in con_lines.values():
             flat_lines: list[int] = [item for sublist in lines for item in sublist]
