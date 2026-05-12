@@ -1,0 +1,57 @@
+"""Shared test constants: geographic coordinates and timestamped sky observation scenarios."""
+
+from datetime import datetime
+
+# Geographic coordinates used across tests
+KYIV_LAT = 50.4
+KYIV_LON = 30.5
+NORTH_POLE_LAT = 90.0
+NORTH_POLE_LON = 0.0
+SOUTH_POLE_LAT = -90.0
+SOUTH_POLE_LON = 0.0
+
+# Observation timestamps covering the four seasons
+SPRING_EVENING = datetime(2026, 4, 29, 21, 0, 0)
+WINTER_EVENING = datetime(2026, 1, 15, 21, 0, 0)
+SUMMER_MIDNIGHT = datetime(2026, 7, 1, 0, 0, 0)
+AUTUMN_MORNING = datetime(2026, 10, 10, 6, 0, 0)
+
+# ra, dec, alt, az
+MOCK_STARS_SPRING_KYIV = [
+    (88.793, 7.407, -9.1820, 293.6009),
+    (101.287, -16.716, -20.2629, 267.9606),
+    (37.954, 89.264, 49.8229, 359.6269),
+    (247.352, -26.432, 3.6517, 141.1093),
+    (279.235, 38.784, 37.0070, 71.3425),
+]
+
+MOCK_STARS_SPRING_NORTH_POLE = [
+    (88.793, 7.407, 7.4107, 263.6840),
+    (101.287, -16.716, -16.7460, 251.2518),
+    (37.954, 89.264, 89.3753, 306.8351),
+    (247.352, -26.432, -26.4908, 105.0679),
+    (279.235, 38.784, 38.8015, 73.3710),
+]
+
+MOCK_STARS_WINTER_KYIV = [
+    (88.793, 7.407, 45.9239, 196.7622),
+    (101.287, -16.716, 22.8527, 179.2093),
+    (37.954, 89.264, 50.7602, 359.2033),
+    (247.352, -26.432, -55.2581, 58.9927),
+    (279.235, 38.784, -0.7880, 1.0731),
+]
+
+LST_EXPECTED = [
+    (NORTH_POLE_LAT, NORTH_POLE_LON, datetime(2026, 1, 15, 21, 0, 0), 70.3227),
+    (NORTH_POLE_LAT, NORTH_POLE_LON, datetime(2026, 4, 29, 21, 0, 0), 172.8298),
+    (NORTH_POLE_LAT, NORTH_POLE_LON, datetime(2026, 7, 1, 0, 0, 0), 279.0632),
+    (NORTH_POLE_LAT, NORTH_POLE_LON, datetime(2026, 10, 10, 6, 0, 0), 108.8602),
+    (SOUTH_POLE_LAT, SOUTH_POLE_LON, datetime(2026, 1, 15, 21, 0, 0), 70.3227),
+    (SOUTH_POLE_LAT, SOUTH_POLE_LON, datetime(2026, 4, 29, 21, 0, 0), 172.8298),
+    (SOUTH_POLE_LAT, SOUTH_POLE_LON, datetime(2026, 7, 1, 0, 0, 0), 279.0632),
+    (SOUTH_POLE_LAT, SOUTH_POLE_LON, datetime(2026, 10, 10, 6, 0, 0), 108.8602),
+    (KYIV_LAT, KYIV_LON, datetime(2026, 1, 15, 21, 0, 0), 100.8227),
+    (KYIV_LAT, KYIV_LON, datetime(2026, 4, 29, 21, 0, 0), 203.3298),
+    (KYIV_LAT, KYIV_LON, datetime(2026, 7, 1, 0, 0, 0), 309.5632),
+    (KYIV_LAT, KYIV_LON, datetime(2026, 10, 10, 6, 0, 0), 139.3602),
+]
