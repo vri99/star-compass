@@ -1,0 +1,32 @@
+/* Reset default browser styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Full screen layout - no scroll */
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Main layout - two panels stacked vertically */
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+/* Three.js 360° sky scene - takes remaining space */
+.sky-scene {
+  flex: 1;
+}
+
+/* Google Maps panel - responsive height based on viewport */
+.map-panel {
+  height: clamp(150px, 25vh, 300px);
+}
