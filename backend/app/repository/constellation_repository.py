@@ -1,10 +1,10 @@
 from typing import cast
 
+from pandas import DataFrame
+
 from backend.app.data.data_processor_interfaces import ConstellationDict, StarDict
-from backend.app.data.files.constellation_data import CONSTELLATIONS, STARS
 from backend.app.repository.repository_interfaces import ConstellationRepositoryInterface
 from backend.app.types import NpFloat
-from pandas import DataFrame
 
 
 class ConstellationRepository(ConstellationRepositoryInterface):
@@ -24,6 +24,8 @@ class ConstellationRepository(ConstellationRepositoryInterface):
     @staticmethod
     def __prepare_dataframe() -> tuple[DataFrame, DataFrame]:
         """Load raw constellation/star dicts into DataFrames with normalized index columns."""
+        from backend.app.data.files.constellation_data import CONSTELLATIONS, STARS
+
         print("\nData Loading...")
 
         constellation_data: DataFrame = DataFrame.from_dict(
@@ -41,9 +43,16 @@ class ConstellationRepository(ConstellationRepositoryInterface):
         """Return a filtered copy of the constellations DataFrame matching the given name set."""
         return self.df_constellations[self.df_constellations["con"].isin(constellation_names)].copy()
 
+    def flat_star_lines_list(self, constellations: DataFrame) -> set[str]:
+        """Return all star ids (hip) that belong to any of the given star list (lines)
+        in the constellations DataFrame."""
+        return set(constellations["lines"].explode().explode().astype(str))
+
     def get_stars_by_constellation(self, constellations: DataFrame) -> DataFrame:
-        """Return all stars that belong to any of the given constellations."""
-        return self.df_stars[self.df_stars["con"].isin(constellations["con"])].copy()
+        """Return all stars that belong to any of the given star list in the constellations DataFrame."""
+        set_of_star_ids_of_constellation: set[str] = self.flat_star_lines_list(constellations)
+
+        return self.df_stars[self.df_stars["hip"].isin(set_of_star_ids_of_constellation)].copy()
 
     def get_ra_dec_values(self, stars: DataFrame) -> tuple[NpFloat, NpFloat]:
         """Extract right ascension and declination arrays from the stars DataFrame."""

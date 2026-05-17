@@ -26,8 +26,6 @@ class DataProcessor(DataProcessorInterface):
     __constellation_lines_file_path: str = BASE_DIR / "files" / "constellation_lines_simplified.dat"
     _constellation_data_file_path: str = BASE_DIR / "files" / "constellation_data.py"
 
-    __MAX_MAGNITUDE: float = 5.0
-
     def _process_dat_constellation_list(self) -> ConstellationNames:
         """Parse constellation names file and return a mapping of 3 char id to full name."""
         df: DataFrame = pd.read_csv(
@@ -63,12 +61,13 @@ class DataProcessor(DataProcessorInterface):
                     # transform str into a list
                     hip_list: list[str] = json.loads(line)
 
-                    # strip asterisks from star ids and convert to int
-                    data[current_key].append([int(x.strip("*")) for x in hip_list])
+                    # strip asterisks from star ids
+                    data[current_key].append([x.strip("*") for x in hip_list])
 
         return data
 
-    def _transform_star_ids_into_set(self, constellation_stars_dict: ConstellationLines) -> FlatStarIds:  # noqa: N802
+    def _transform_star_ids_into_set(self,
+                                     constellation_stars_dict: ConstellationLines) -> FlatStarIds:  # noqa: N802
         """Flatten nested star id groups into a single set of unique star ids."""
 
         flat_star_ids: FlatStarIds = set()
@@ -80,8 +79,8 @@ class DataProcessor(DataProcessorInterface):
         return flat_star_ids
 
     def _filter_csv_constellations(
-        self,
-        flat_star_ids: FlatStarIds,
+            self,
+            flat_star_ids: FlatStarIds,
     ) -> DataFrame:
         """Filter HYG star catalog by constellation HIP (star) ids and a star magnitude (brightness),
         then group by constellation."""
@@ -90,15 +89,15 @@ class DataProcessor(DataProcessorInterface):
             subset=["con", "hip"]
         )
 
+        # "hip" column is floating by default. Convert into srt
+        df["hip"] = df["hip"].astype(int).astype(str)
         # keep only stars that belong to constellation lines and are bright enough
-        df_cleaned = df.loc[df["hip"].isin(flat_star_ids) & (df["mag"] < self.__MAX_MAGNITUDE)]
-        # "hip" column is floating by default. Convert into int
-        df_cleaned["hip"] = df_cleaned["hip"].astype(int)
+        df_cleaned = df.loc[df["hip"].isin(flat_star_ids)]
 
         return df_cleaned
 
     def _get_processed_constellation_data(
-        self,
+            self,
     ) -> ConstellationData:
         """Orchestrate all processing steps and return a complete constellation dataset."""
         constellation_lines: ConstellationLines = self._process_dat_constellation_lines()
@@ -121,10 +120,10 @@ class DataProcessor(DataProcessorInterface):
         )
 
     def _combine_data_into_constellation_dict(
-        self,
-        df: DataFrame,
-        constellation_lines: ConstellationLines,
-        constellation_names: ConstellationNames,
+            self,
+            df: DataFrame,
+            constellation_lines: ConstellationLines,
+            constellation_names: ConstellationNames,
     ) -> tuple[ConstellationDict, StarDict]:
         """Join star data with constellation names and lines into serializable dicts."""
 
