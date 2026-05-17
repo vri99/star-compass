@@ -21,4 +21,4 @@ class StarSchema(BaseModel):
 class ConstellationSchema(BaseModel):
     id: str
     full_name: str
-    lines: list[list[int]]
+    lines: list[list[str]]

@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from pandas import DataFrame
+
 from backend.app.repository.repository_interfaces import ConstellationRepositoryInterface
 from backend.app.schemas.requst_responce_schema import SkyResponse
 from backend.app.schemas.star_constellation_schema import ConstellationSchema, StarSchema
@@ -8,7 +10,6 @@ from backend.app.services.service_interfaces import (
     SkyCalculatorInterface,
     SkyMapperServiceInterface,
 )
-from pandas import DataFrame
 
 
 @dataclass
@@ -27,10 +28,10 @@ class SkyMapperService(SkyMapperServiceInterface):
         return self.__constellation_repository.get_constellations_by_names(visible_constellation_names_set)
 
     def _get_stars_with_alt_az(
-        self, observer_context: ObserverContext, constellations: DataFrame
+            self, observer_context: ObserverContext, constellations: DataFrame
     ) -> DataFrame:
         """Fetch stars for the visible constellations and compute their alt/az positions."""
-        stars = self.__constellation_repository.get_stars_by_constellation(constellations)
+        stars: DataFrame = self.__constellation_repository.get_stars_by_constellation(constellations)
         ra, dec = self.__constellation_repository.get_ra_dec_values(stars)
 
         # convert equatorial coordinates to observer-relative horizontal coordinates
@@ -39,7 +40,7 @@ class SkyMapperService(SkyMapperServiceInterface):
         return self.__constellation_repository.update_stars_with_alt_az(stars, alt, az)
 
     def _convert_data_into_response(
-        self, constellations: DataFrame, stars: DataFrame
+            self, constellations: DataFrame, stars: DataFrame
     ) -> tuple[list[ConstellationSchema], list[StarSchema]]:
         """Serialize constellation and star DataFrames into schema-validated response objects."""
 

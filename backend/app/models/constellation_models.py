@@ -3,12 +3,12 @@ from typing import TypedDict
 
 class ConstellationModel(TypedDict):
     full_name: str
-    lines: list[list[int]]
+    lines: list[list[str]]
 
 
 class StarModel(TypedDict):
     # The Hipparchus star catalogue
-    hip: int
+    hip: str
 
     # star name
     proper: str

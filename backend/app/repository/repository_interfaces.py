@@ -1,7 +1,8 @@
 from typing import Protocol
 
-from backend.app.types import NpFloat
 from pandas import DataFrame
+
+from backend.app.types import NpFloat
 
 
 class ConstellationRepositoryInterface(Protocol):
@@ -11,6 +12,8 @@ class ConstellationRepositoryInterface(Protocol):
     def get_constellations_by_names(self, constellation_names: set[str]) -> DataFrame: ...
 
     def get_ra_dec_values(self, stars: DataFrame) -> tuple[NpFloat, NpFloat]: ...
+
+    def flat_star_lines_list(self, constellations: DataFrame) -> set[str]: ...
 
     def update_stars_with_alt_az(self, stars: DataFrame, alt, az) -> DataFrame: ...
 
