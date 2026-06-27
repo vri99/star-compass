@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ObserverRequest, SkyResponse } from '@/types'
+import { ObserverRequest } from '@/types'
 
 
 const DEFAULT_LOCATION: ObserverRequest = {
